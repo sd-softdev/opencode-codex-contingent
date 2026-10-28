@@ -1,13 +1,13 @@
 {
   "name": "@sd-softdev/opencode-codex-contingent",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Codex subscription quota and reset times in the OpenCode V2 sidebar and footer, using the local Codex app server.",
   "type": "module",
   "license": "MIT",
   "author": "sd-softdev",
   "repository": {
     "type": "git",
-    "url": "https://github.com/sd-softdev/opencode-codex-contingent.git"
+    "url": "git+https://github.com/sd-softdev/opencode-codex-contingent.git"
   },
   "homepage": "https://github.com/sd-softdev/opencode-codex-contingent#readme",
   "bugs": "https://github.com/sd-softdev/opencode-codex-contingent/issues",
