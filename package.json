@@ -1,6 +1,6 @@
 {
   "name": "@sd-softdev/opencode-codex-contingent",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Codex subscription quota and reset times in the OpenCode V2 sidebar and footer, using the local Codex app server.",
   "type": "module",
   "license": "MIT",
