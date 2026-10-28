@@ -20,10 +20,11 @@ jobs:
           node-version: ${{ matrix.node }}
       - run: npm ci --ignore-scripts
         if: matrix.node == 26
-      - run: npm run typecheck
+      - run: npm run check
         if: matrix.node == 26
       - run: npm test
+        if: matrix.node != 26
       - run: npm audit
         if: matrix.node == 26
-      - run: npm pack --dry-run
+      - run: npm pack --dry-run --ignore-scripts
         if: matrix.node == 26
