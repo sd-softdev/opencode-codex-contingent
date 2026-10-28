@@ -1,0 +1,58 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+concurrency:
+  group: npm-release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    if: github.repository == 'sd-softdev/opencode-codex-contingent'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    env:
+      RELEASE_TAG: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 26
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+      - name: Use a reproducible npm pack and OIDC-capable CLI
+        run: npm install --global npm@11.16.0
+      - name: Validate stable tag and package version
+        run: node scripts/release.mjs validate "$RELEASE_TAG"
+      - run: npm ci --ignore-scripts
+      - run: npm run check
+      - run: npm audit
+      - name: Pack the checked build
+        run: node scripts/release.mjs prepare "$RELEASE_TAG"
+      - name: Publish publicly to npm using OIDC
+        run: node scripts/release.mjs publish "$RELEASE_TAG"
+      - name: Verify npm version and downloaded tarball
+        run: node scripts/release.mjs verify "$RELEASE_TAG"
+      - name: Generate Conventional Commit release notes
+        run: node scripts/release.mjs notes "$RELEASE_TAG"
+      - name: Create GitHub release only after npm verification
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            echo "GitHub release already exists; leaving it unchanged."
+          else
+            gh release create "$RELEASE_TAG" .release/*.tgz \
+              --repo "$GITHUB_REPOSITORY" --verify-tag \
+              --title "$RELEASE_TAG" --notes-file .release/notes.md
+          fi

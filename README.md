@@ -31,12 +31,27 @@ codex login
 codex login status
 ```
 
+## Install from npm (after the first release)
+
+The package scope is `@sd-softdev`. Once the first version is published:
+
+```sh
+opencode plugin add @sd-softdev/opencode-codex-contingent
+```
+
+The npm package contains compiled JavaScript; users do not need a build toolchain.
+Before the initial npm publication, this command is unavailable. Installation
+from GitHub below remains an alternative.
+
 ## Install from GitHub
 
 Clone this repository into a directory of your choice:
 
 ```sh
 git clone https://github.com/sd-softdev/opencode-codex-contingent.git
+cd opencode-codex-contingent
+npm ci --ignore-scripts
+npm run build
 ```
 
 Add its **absolute path** to the existing `plugins` array in
@@ -52,11 +67,12 @@ other settings and plugins:
 }
 ```
 
-No build or `npm install` is needed for this local-source installation: OpenCode
-loads `./tui` and provides the UI runtime. The plugin is **not published on npm**.
-Configuration changes reload automatically; use `/reload` if needed.
+This source installation needs Node.js 26.4+ for the build dependencies. OpenCode
+loads the compiled `./tui` entry and provides the UI runtime. Configuration
+changes reload automatically; use `/reload` if needed.
 
-To update, run `git pull --ff-only` in your clone and `/reload` in OpenCode.
+To update, run `git pull --ff-only`, `npm ci --ignore-scripts`, and `npm run build`
+in your clone, then `/reload` in OpenCode.
 To uninstall, remove this plugin's entry from `cli.json`. This does not sign out
 of Codex or remove the Codex CLI.
 
@@ -114,10 +130,11 @@ npm ci
 npm run check
 ```
 
-`npm test` also runs without installing dependencies on Node.js 22.18+. Tests never call real
-accounts or models. UI types come from the OpenCode 2.2.0 SDK. CI runs type checks
-on Node.js 26 and standalone tests on Node.js 22, 24, and 26. The preview above
-uses fictional data.
+`npm test` also runs without installing dependencies on Node.js 22.18+. Tests
+never call real accounts or models, publish packages, or create releases. UI
+types come from the OpenCode 2.2.0 SDK. CI runs type checks and the build on
+Node.js 26 and standalone tests on Node.js 22, 24, and 26. The preview above uses
+fictional data.
 
 References: [OpenCode V2 TUI plugins](https://opencode.ai/v2/docs/build/plugins/cli/)
 and [Codex rate-limit RPC](https://developers.openai.com/codex/app-server#6-rate-limits-chatgpt).
