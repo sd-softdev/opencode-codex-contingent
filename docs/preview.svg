@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="310" viewBox="0 0 720 310" role="img" aria-labelledby="title desc">
+  <title id="title">OpenCode Codex Contingent preview</title>
+  <desc id="desc">Illustrative sidebar and footer with fictional weekly and five-hour quota values.</desc>
+  <rect width="720" height="310" rx="14" fill="#151820"/>
+  <g font-family="monospace" font-size="17">
+    <text x="28" y="42" fill="#e5e9f0">OpenCode · Codex Contingent</text>
+    <path d="M24 60H696M430 76V238M24 252H696" stroke="#394150"/>
+    <text x="28" y="106" fill="#7f899b">Your conversation stays here.</text>
+    <text x="458" y="104" fill="#e5e9f0">Codex quota</text>
+    <text x="458" y="140" fill="#a3be8c">Weekly: 83% left</text>
+    <text x="458" y="165" fill="#9aa5b7">Resets in 6d 2h</text>
+    <text x="458" y="204" fill="#a3be8c">5 hours: 95% left</text>
+    <text x="458" y="229" fill="#9aa5b7">Resets in 4h 12m</text>
+    <text x="28" y="285" fill="#9aa5b7">Codex Weekly: 83% left</text>
+    <text x="438" y="285" fill="#7f899b" font-size="13">Fictional example data</text>
+  </g>
+</svg>

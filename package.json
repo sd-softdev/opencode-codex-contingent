@@ -1,0 +1,48 @@
+{
+  "name": "opencode-codex-contingent",
+  "version": "0.1.0",
+  "description": "Codex subscription quota and reset times in the OpenCode V2 sidebar and footer, using the local Codex app server.",
+  "type": "module",
+  "license": "MIT",
+  "author": "sd-softdev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sd-softdev/opencode-codex-contingent.git"
+  },
+  "homepage": "https://github.com/sd-softdev/opencode-codex-contingent#readme",
+  "bugs": "https://github.com/sd-softdev/opencode-codex-contingent/issues",
+  "keywords": ["opencode", "opencode-plugin", "codex", "quota", "usage", "tui"],
+  "exports": {
+    "./tui": "./src/tui.tsx"
+  },
+  "files": ["src", "docs/preview.svg", "README.md", "LICENSE", "SECURITY.md"],
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run typecheck && npm test"
+  },
+  "engines": { "node": ">=22.18.0" },
+  "peerDependencies": {
+    "@opencode/plugin": "^2.2.0",
+    "@opentui/core": ">=0.7.0 <0.8.0",
+    "@opentui/solid": ">=0.7.0 <0.8.0",
+    "solid-js": "^1.9.0"
+  },
+  "peerDependenciesMeta": {
+    "@opencode/plugin": { "optional": true },
+    "@opentui/core": { "optional": true },
+    "@opentui/solid": { "optional": true },
+    "solid-js": { "optional": true }
+  },
+  "devDependencies": {
+    "@opencode/plugin": "2.2.0",
+    "@opentui/core": "0.7.0",
+    "@opentui/solid": "0.7.0",
+    "@types/node": "^22.0.0",
+    "solid-js": "1.9.12",
+    "typescript": "7.0.2"
+  },
+  "overrides": {
+    "seroval": "1.6.8"
+  }
+}
