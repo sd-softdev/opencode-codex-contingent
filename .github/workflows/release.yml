@@ -15,6 +15,7 @@ jobs:
   release:
     if: github.repository == 'sd-softdev/opencode-codex-contingent'
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     permissions:
       contents: write
       id-token: write
@@ -42,6 +43,7 @@ jobs:
       - name: Publish publicly to npm using OIDC
         run: node scripts/release.mjs publish "$RELEASE_TAG"
       - name: Verify npm version and downloaded tarball
+        timeout-minutes: 12
         run: node scripts/release.mjs verify "$RELEASE_TAG"
       - name: Generate Conventional Commit release notes
         run: node scripts/release.mjs notes "$RELEASE_TAG"

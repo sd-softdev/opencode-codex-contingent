@@ -21,13 +21,47 @@ export function integrity(bytes) {
   return `sha512-${createHash("sha512").update(bytes).digest("base64")}`;
 }
 
+export class RetryableRegistryError extends Error {
+  constructor(message, retryAfterMs = 0) {
+    super(message);
+    this.retryAfterMs = retryAfterMs;
+  }
+}
+
+async function registryRequest(url, timeoutMs, fetcher) {
+  let response;
+  try {
+    response = await fetcher(url, {
+      signal: AbortSignal.timeout(timeoutMs), cache: "no-store",
+      headers: { "Cache-Control": "no-cache" },
+    });
+  } catch (error) {
+    if (["TypeError", "TimeoutError", "AbortError"].includes(error?.name)) {
+      throw new RetryableRegistryError("Temporary npm registry connection failure.");
+    }
+    throw error;
+  }
+  if (response.status === 408 || response.status === 429 || response.status >= 500) {
+    const retryAfter = response.headers.get("retry-after");
+    const retryAfterMs = retryAfter && /^\d+$/.test(retryAfter)
+      ? Number(retryAfter) * 1000 : Math.max(0, Date.parse(retryAfter ?? "") - Date.now()) || 0;
+    throw new RetryableRegistryError(`Temporary npm registry response (HTTP ${response.status}).`, retryAfterMs);
+  }
+  return response;
+}
+
 export async function registryVersion(name, version, fetcher = fetch) {
-  const response = await fetcher(`https://registry.npmjs.org/${name.replace("/", "%2f")}/${version}`, {
-    signal: AbortSignal.timeout(10000), cache: "no-store",
-  });
+  const response = await registryRequest(`https://registry.npmjs.org/${name.replace("/", "%2f")}/${version}`, 10000, fetcher);
   if (response.status === 404) return null;
   if (!response.ok) throw new Error(`npm metadata request failed (HTTP ${response.status}).`);
-  return response.json();
+  try {
+    return await response.json();
+  } catch (error) {
+    if (["TypeError", "TimeoutError", "AbortError"].includes(error?.name)) {
+      throw new RetryableRegistryError("Temporary npm metadata connection failure.");
+    }
+    throw error;
+  }
 }
 
 export function assertMetadata(metadata, artifact) {
@@ -38,26 +72,52 @@ export function assertMetadata(metadata, artifact) {
 }
 
 export async function verifyPublished(artifact, {
-  fetcher = fetch, attempts = 12,
-  wait = () => new Promise((done) => setTimeout(done, 5000)),
+  fetcher = fetch, attempts = 41, timeoutMs = 600000, intervalMs = 15000,
+  now = Date.now, wait = (delay) => new Promise((done) => setTimeout(done, delay)),
+  onRetry = () => {},
 } = {}) {
+  const started = now();
+  let reason = "npm version is not visible yet (HTTP 404).";
   for (let attempt = 0; attempt < attempts; attempt++) {
-    const metadata = await registryVersion(artifact.name, artifact.version, fetcher);
-    if (metadata) {
-      assertMetadata(metadata, artifact);
-      const url = new URL(metadata.dist.tarball);
-      if (url.protocol !== "https:" || url.hostname !== "registry.npmjs.org") {
-        throw new Error("Unexpected npm tarball host.");
+    if (attempt > 0 && now() - started >= timeoutMs) break;
+    let retryAfterMs = 0;
+    try {
+      const metadata = await registryVersion(artifact.name, artifact.version, fetcher);
+      if (metadata) {
+        assertMetadata(metadata, artifact);
+        const url = new URL(metadata.dist.tarball);
+        if (url.protocol !== "https:" || url.hostname !== "registry.npmjs.org") {
+          throw new Error("Unexpected npm tarball host.");
+        }
+        const response = await registryRequest(url, 15000, fetcher);
+        if (response.status === 404) throw new RetryableRegistryError("npm tarball is not visible yet (HTTP 404).");
+        if (!response.ok) throw new Error(`npm tarball download failed (HTTP ${response.status}).`);
+        let bytes;
+        try {
+          bytes = Buffer.from(await response.arrayBuffer());
+        } catch (error) {
+          if (["TypeError", "TimeoutError", "AbortError"].includes(error?.name)) {
+            throw new RetryableRegistryError("Temporary npm tarball connection failure.");
+          }
+          throw error;
+        }
+        if (integrity(bytes) !== artifact.integrity) throw new Error("Downloaded npm tarball failed integrity verification.");
+        return;
       }
-      const response = await fetcher(url, { signal: AbortSignal.timeout(15000), cache: "no-store" });
-      if (!response.ok) throw new Error(`npm tarball download failed (HTTP ${response.status}).`);
-      const bytes = Buffer.from(await response.arrayBuffer());
-      if (integrity(bytes) !== artifact.integrity) throw new Error("Downloaded npm tarball failed integrity verification.");
-      return;
+      reason = "npm version is not visible yet (HTTP 404).";
+    } catch (error) {
+      // Identity and integrity mismatches are never retried or downgraded.
+      if (!(error instanceof RetryableRegistryError)) throw error;
+      reason = error.message;
+      retryAfterMs = error.retryAfterMs;
     }
-    if (attempt + 1 < attempts) await wait();
+    const remaining = timeoutMs - (now() - started);
+    if (attempt + 1 >= attempts || remaining <= 0) break;
+    const delayMs = Math.min(Math.max(intervalMs, retryAfterMs), remaining);
+    onRetry({ attempt: attempt + 1, attempts, elapsedMs: now() - started, delayMs, reason });
+    await wait(delayMs);
   }
-  throw new Error("Published npm version is not visible after verification retries.");
+  throw new Error(`npm version is not visible or downloadable after verification retries. ${reason} The package may already be published; rerun the failed workflow once npm processing completes. Do not republish or move the tag.`);
 }
 
 export function previousTag(tags, current) {
@@ -130,7 +190,9 @@ async function main(command, tag = process.env.GITHUB_REF_NAME) {
       execFileSync("npm", ["publish", `${directory}/${artifact.filename}`, "--access", "public", "--tag", "latest", "--registry", "https://registry.npmjs.org/", "--ignore-scripts"], { stdio: "inherit" });
     }
   } else if (command === "verify") {
-    await verifyPublished(artifact);
+    await verifyPublished(artifact, { onRetry: ({ attempt, attempts, elapsedMs, delayMs, reason }) => {
+      console.log(`npm verification ${attempt}/${attempts}, ${Math.round(elapsedMs / 1000)}s elapsed: ${reason} Retrying in ${Math.ceil(delayMs / 1000)}s.`);
+    } });
     console.log("Published version and downloaded tarball integrity verified.");
   } else if (command === "notes") {
     const tags = execFileSync("git", ["tag", "--merged", tag, "--sort=-version:refname"], { encoding: "utf8" });

@@ -67,8 +67,9 @@ test("initial and empty releases do not invent a previous comparison", () => {
 
 test("metadata requests target the explicit public scoped registry version", async () => {
   let requested;
-  const result = await registryVersion(PACKAGE, "1.2.3", async (url) => {
+  const result = await registryVersion(PACKAGE, "1.2.3", async (url, options) => {
     requested = url;
+    assert.equal(options.headers["Cache-Control"], "no-cache");
     return json(metadata);
   });
   assert.equal(requested, "https://registry.npmjs.org/@sd-softdev%2fopencode-codex-contingent/1.2.3");
@@ -125,10 +126,114 @@ test("verification rejects corrupted downloads and unexpected tarball hosts", as
 });
 
 test("verification does not report success for a failed tarball download", async () => {
-  let calls = 0;
-  await assert.rejects(verifyPublished(artifact, { fetcher: async () =>
-    ++calls === 1 ? json(metadata) : new Response("unavailable", { status: 503 }),
-  }), /download failed/);
+  await assert.rejects(verifyPublished(artifact, {
+    attempts: 2, wait: async () => {},
+    fetcher: async (url) => String(url) === metadata.dist.tarball
+      ? new Response("unavailable", { status: 503 }) : json(metadata),
+  }), /HTTP 503/);
+});
+
+test("default verification tolerates npm processing for more than one minute", async () => {
+  let time = 0;
+  const progress = [];
+  await verifyPublished(artifact, {
+    now: () => time,
+    wait: async (delay) => { time += delay; },
+    onRetry: (event) => progress.push(event),
+    fetcher: async (url) => String(url) === metadata.dist.tarball
+      ? new Response(bytes) : time < 180000 ? json({}, 404) : json(metadata),
+  });
+  assert.equal(time, 180000);
+  assert.equal(progress.length, 12);
+  assert.equal(progress[0].attempt, 1);
+  assert.equal(progress[0].delayMs, 15000);
+  assert.match(progress[0].reason, /HTTP 404/);
+});
+
+test("verification respects an overall deadline instead of waiting indefinitely", async () => {
+  let time = 0;
+  let requests = 0;
+  await assert.rejects(verifyPublished(artifact, {
+    attempts: 100, timeoutMs: 30000,
+    now: () => time,
+    wait: async (delay) => { time += delay; },
+    fetcher: async () => { requests++; return json({}, 404); },
+  }), /may already be published/);
+  assert.equal(time, 30000);
+  assert.equal(requests, 2);
+});
+
+test("temporary metadata HTTP and connection errors are retried", async () => {
+  for (const failure of [408, 429, 500, 503, "network", "timeout", "body"]) {
+    let requests = 0;
+    const waits = [];
+    await verifyPublished(artifact, {
+      attempts: 2,
+      wait: async (delay) => waits.push(delay),
+      fetcher: async (url) => {
+        requests++;
+        if (requests === 1) {
+          if (failure === "network") throw new TypeError("connection failed");
+          if (failure === "timeout") throw new DOMException("timeout", "TimeoutError");
+          if (failure === "body") return { ok: true, status: 200, json: async () => { throw new TypeError("interrupted body"); } };
+          return new Response("temporarily unavailable", {
+            status: failure,
+            headers: failure === 429 ? { "Retry-After": "30" } : {},
+          });
+        }
+        return String(url) === metadata.dist.tarball ? new Response(bytes) : json(metadata);
+      },
+    });
+    assert.equal(requests, 3);
+    assert.deepEqual(waits, [failure === 429 ? 30000 : 15000]);
+  }
+});
+
+test("Retry-After cannot exceed the overall verification deadline", async () => {
+  let time = 0;
+  const waits = [];
+  await assert.rejects(verifyPublished(artifact, {
+    timeoutMs: 30000, now: () => time,
+    wait: async (delay) => { waits.push(delay); time += delay; },
+    fetcher: async () => new Response("rate limited", { status: 429, headers: { "Retry-After": "900" } }),
+  }), /HTTP 429/);
+  assert.deepEqual(waits, [30000]);
+});
+
+test("tarball propagation delays and interrupted downloads are retried", async () => {
+  for (const failure of [404, 503, "network", "body"]) {
+    let downloads = 0;
+    let waits = 0;
+    await verifyPublished(artifact, {
+      attempts: 2, wait: async () => { waits++; },
+      fetcher: async (url) => {
+        if (String(url) !== metadata.dist.tarball) return json(metadata);
+        if (++downloads === 1) {
+          if (failure === "network") throw new TypeError("connection failed");
+          if (failure === "body") return { ok: true, status: 200, arrayBuffer: async () => { throw new TypeError("interrupted body"); } };
+          return new Response("not available yet", { status: failure });
+        }
+        return new Response(bytes);
+      },
+    });
+    assert.equal(downloads, 2);
+    assert.equal(waits, 1);
+  }
+});
+
+test("authentication failures and integrity mismatches are never retried", async () => {
+  for (const status of [401, 403]) {
+    let requests = 0;
+    await assert.rejects(verifyPublished(artifact, {
+      wait: async () => assert.fail("must not retry authentication errors"),
+      fetcher: async () => { requests++; return json({}, status); },
+    }), new RegExp(`HTTP ${status}`));
+    assert.equal(requests, 1);
+  }
+  await assert.rejects(verifyPublished(artifact, {
+    wait: async () => assert.fail("must not retry integrity errors"),
+    fetcher: async () => json({ ...metadata, dist: { ...metadata.dist, integrity: "wrong" } }),
+  }), /does not match/);
 });
 
 test("notes CLI uses real Git ranges and excludes unrelated tags", async () => {
