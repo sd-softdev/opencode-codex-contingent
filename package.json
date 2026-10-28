@@ -7,7 +7,7 @@
   "author": "sd-softdev",
   "repository": {
     "type": "git",
-    "url": "https://github.com/sd-softdev/opencode-codex-contingent.git"
+    "url": "git+https://github.com/sd-softdev/opencode-codex-contingent.git"
   },
   "homepage": "https://github.com/sd-softdev/opencode-codex-contingent#readme",
   "bugs": "https://github.com/sd-softdev/opencode-codex-contingent/issues",
