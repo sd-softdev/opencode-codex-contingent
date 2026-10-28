@@ -15,7 +15,7 @@
   "exports": {
     "./tui": "./dist/tui.js"
   },
-  "files": ["dist", "docs/preview.svg", "docs/releasing.md", "README.md", "LICENSE", "SECURITY.md"],
+  "files": ["dist", "docs/preview.svg", "README.md", "LICENSE", "SECURITY.md"],
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"

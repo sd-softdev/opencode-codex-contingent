@@ -136,17 +136,6 @@ types come from the OpenCode 2.2.0 SDK. CI runs type checks and the build on
 Node.js 26 and standalone tests on Node.js 22, 24, and 26. The preview above uses
 fictional data.
 
-## Releases
-
-Pushing a stable `vX.Y.Z` tag starts the release workflow: validate the version,
-build and test, publish to npm, download and verify the published package, then
-create a GitHub release with Conventional Commit notes and the verified tarball.
-The tag must match `package.json`; the workflow does not bump versions for you.
-
-See [Release setup and procedure](docs/releasing.md) for the one-time npm OIDC
-setup, first-publication prerequisite, and recovery instructions. No release is
-triggered by ordinary branch pushes or pull requests.
-
 References: [OpenCode V2 TUI plugins](https://opencode.ai/v2/docs/build/plugins/cli/)
 and [Codex rate-limit RPC](https://developers.openai.com/codex/app-server#6-rate-limits-chatgpt).
 
