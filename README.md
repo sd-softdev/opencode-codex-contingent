@@ -27,9 +27,16 @@ opencode plugin add @sd-softdev/opencode-codex-contingent
 
 No plugin build is needed. Use `/reload` if the plugin does not appear.
 
-## VS Code: install from GitHub
+## VS Code: install
 
-Download `codex-contingent-<version>.vsix` from the
+Install [Codex Contingent](https://marketplace.visualstudio.com/items?itemName=SD-SoftDev.codex-contingent)
+from the VS Code Marketplace, or run:
+
+```sh
+code --install-extension SD-SoftDev.codex-contingent
+```
+
+You can also download `codex-contingent-<version>.vsix` from the
 [GitHub releases](https://github.com/sd-softdev/opencode-codex-contingent/releases).
 Run **Extensions: Install from VSIX…** in VS Code and select the file.
 

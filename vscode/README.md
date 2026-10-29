@@ -12,7 +12,14 @@ Hover for all quota windows; click for details.
 
 ## Install
 
-Download the `.vsix` from the
+Install [Codex Contingent](https://marketplace.visualstudio.com/items?itemName=SD-SoftDev.codex-contingent)
+from the VS Code Marketplace, or run:
+
+```sh
+code --install-extension SD-SoftDev.codex-contingent
+```
+
+You can also download the `.vsix` from the
 [GitHub releases](https://github.com/sd-softdev/opencode-codex-contingent/releases).
 In VS Code, run **Extensions: Install from VSIX…** and select the file.
 

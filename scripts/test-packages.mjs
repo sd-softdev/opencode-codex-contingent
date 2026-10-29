@@ -125,7 +125,7 @@ try {
   const extract = (name) => execFileSync("unzip", ["-p", vsix, `extension/${name}`], { encoding: "utf8" });
   const manifest = JSON.parse(extract("package.json"));
   assert.equal(manifest.version, pkg.version);
-  assert.equal(manifest.publisher, "sd-softdev");
+  assert.equal(manifest.publisher, "SD-SoftDev");
   assert.equal(manifest.dependencies, undefined);
   const commands = new Map();
   let itemDisposed = false;

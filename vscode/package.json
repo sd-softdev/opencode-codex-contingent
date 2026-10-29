@@ -2,7 +2,7 @@
   "name": "codex-contingent",
   "displayName": "Codex Contingent",
   "description": "Codex subscription quota and reset times in the status bar, using the local Codex CLI.",
-  "publisher": "sd-softdev",
+  "publisher": "SD-SoftDev",
   "license": "MIT",
   "repository": {
     "type": "git",

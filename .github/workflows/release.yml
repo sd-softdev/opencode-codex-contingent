@@ -62,3 +62,8 @@ jobs:
               --repo "$GITHUB_REPOSITORY" --verify-tag \
               --title "$RELEASE_TAG" --notes-file .release/notes.md
           fi
+      - name: Publish checked VSIX to VS Code Marketplace using OIDC
+        timeout-minutes: 5
+        run: >-
+          npx --no-install vsce publish --oidc --skip-duplicate
+          --packagePath ".release/codex-contingent-${RELEASE_TAG#v}.vsix"
