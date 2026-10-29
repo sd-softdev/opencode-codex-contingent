@@ -1,0 +1,42 @@
+{
+  "name": "codex-contingent",
+  "displayName": "Codex Contingent",
+  "description": "Codex subscription quota and reset times in the status bar, using the local Codex CLI.",
+  "publisher": "sd-softdev",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sd-softdev/opencode-codex-contingent.git"
+  },
+  "homepage": "https://github.com/sd-softdev/opencode-codex-contingent#readme",
+  "bugs": { "url": "https://github.com/sd-softdev/opencode-codex-contingent/issues" },
+  "engines": { "vscode": "^1.96.0" },
+  "categories": ["Other"],
+  "keywords": ["codex", "quota", "usage", "statusbar"],
+  "main": "./extension.cjs",
+  "files": ["extension.cjs", "README.md", "LICENSE", "SECURITY.md"],
+  "activationEvents": ["onStartupFinished"],
+  "extensionKind": ["ui"],
+  "capabilities": {
+    "untrustedWorkspaces": { "supported": true },
+    "virtualWorkspaces": true
+  },
+  "contributes": {
+    "commands": [
+      { "command": "codexContingent.refresh", "title": "Codex Contingent: Refresh Quotas" },
+      { "command": "codexContingent.showDetails", "title": "Codex Contingent: Show Quotas" }
+    ],
+    "configuration": {
+      "title": "Codex Contingent",
+      "properties": {
+        "codexContingent.codexBinary": {
+          "type": "string",
+          "default": "codex",
+          "minLength": 1,
+          "scope": "machine",
+          "description": "Trusted local Codex executable name or absolute path. Uses the local CLI account, even in remote workspaces."
+        }
+      }
+    }
+  }
+}

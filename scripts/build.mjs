@@ -1,7 +1,7 @@
 import { transformFileAsync } from "@babel/core";
-import { copyFile, mkdir, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, readdir, rm, writeFile } from "node:fs/promises";
 
-const result = await transformFileAsync("src/tui.tsx", {
+const result = await transformFileAsync("src/adapters/opencode/tui.tsx", {
   babelrc: false,
   configFile: false,
   sourceMaps: false,
@@ -11,6 +11,12 @@ const result = await transformFileAsync("src/tui.tsx", {
   ],
 });
 if (!result?.code) throw new Error("TUI compilation produced no output.");
-await mkdir("dist", { recursive: true });
-await writeFile("dist/tui.js", `${result.code}\n`);
-await copyFile("src/quota.mjs", "dist/quota.mjs");
+// Only generated output is cleaned; the public ./tui entry stays unchanged.
+await rm("dist", { recursive: true, force: true });
+await mkdir("dist/adapters/opencode", { recursive: true });
+await mkdir("dist/core", { recursive: true });
+await writeFile("dist/adapters/opencode/tui.js", `${result.code}\n`);
+await writeFile("dist/tui.js", 'export { default } from "./adapters/opencode/tui.js";\n');
+for (const file of await readdir("src/core")) {
+  if (file.endsWith(".mjs")) await copyFile(`src/core/${file}`, `dist/core/${file}`);
+}

@@ -138,6 +138,7 @@ export function parseCommit(hash, message) {
 
 export function releaseNotes(tag, commits, previous) {
   const lines = [`# ${tag}`, "", `npm: [${PACKAGE}@${tag.slice(1)}](https://www.npmjs.com/package/${PACKAGE}/v/${tag.slice(1)})`, ""];
+  lines.push("VS Code: install the attached `.vsix` using **Extensions: Install from VSIX…**.", "");
   const entry = (commit) => `- ${commit.scope ? `**${commit.scope}:** ` : ""}${commit.description} ([${commit.hash.slice(0, 7)}](${REPOSITORY}/commit/${commit.hash}))`;
   const breaking = commits.filter((commit) => commit.breaking);
   if (breaking.length) {
@@ -172,7 +173,9 @@ async function main(command, tag = process.env.GITHUB_REF_NAME) {
   if (command === "prepare") {
     await mkdir(directory, { recursive: true });
     const [packed] = JSON.parse(execFileSync("npm", ["pack", "--json", "--ignore-scripts", "--pack-destination", directory], { encoding: "utf8" }));
-    const expected = ["LICENSE", "README.md", "SECURITY.md", "package.json", "docs/preview.svg", "dist/quota.mjs", "dist/tui.js"].sort();
+    const expected = ["LICENSE", "README.md", "SECURITY.md", "package.json", "docs/preview.svg",
+      "dist/core/quota.mjs", "dist/core/poller.mjs", "dist/core/display.mjs",
+      "dist/adapters/opencode/tui.js", "dist/tui.js"].sort();
     if (JSON.stringify(packed.files.map((file) => file.path).sort()) !== JSON.stringify(expected)) throw new Error("Unexpected files in npm package.");
     const artifact = { name: pkg.name, version: pkg.version, tag, filename: packed.filename, integrity: packed.integrity };
     if (integrity(await readFile(`${directory}/${artifact.filename}`)) !== artifact.integrity) throw new Error("Packed artifact integrity mismatch.");

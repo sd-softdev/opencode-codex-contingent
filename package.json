@@ -24,8 +24,11 @@
     "test": "node --test tests/*.test.mjs",
     "typecheck": "tsc --noEmit",
     "build": "node scripts/build.mjs",
+    "build:vscode": "node scripts/build-vscode.mjs",
+    "package:vscode": "npm run build:vscode && node scripts/package-vscode.mjs",
+    "test:packages": "node scripts/test-packages.mjs",
     "prepack": "npm run build",
-    "check": "npm run typecheck && npm test && npm run build"
+    "check": "npm run typecheck && npm test && npm run build && npm run build:vscode"
   },
   "engines": { "node": ">=22.18.0" },
   "peerDependencies": {
@@ -47,11 +50,16 @@
     "@opentui/core": "0.7.0",
     "@opentui/solid": "0.7.0",
     "@types/node": "^22.0.0",
+    "@types/vscode": "1.96.0",
+    "@vscode/vsce": "4.1.0",
     "babel-preset-solid": "1.9.12",
+    "esbuild": "0.28.2",
     "solid-js": "1.9.12",
     "typescript": "7.0.2"
   },
   "overrides": {
-    "seroval": "1.6.8"
+    "seroval": "1.6.11",
+    "@azure/identity": "4.13.0",
+    "uuid": "11.1.1"
   }
 }

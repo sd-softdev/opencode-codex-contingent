@@ -1,5 +1,6 @@
 import { spawn } from "node:child_process";
 import { homedir } from "node:os";
+import metadata from "../../package.json" with { type: "json" };
 
 /**
  * @typedef {{label: string, weekly: boolean, remaining: number, resetsAt: number | null}} QuotaWindow
@@ -137,7 +138,7 @@ export function readCodexLimits({
     send({
       id: 1,
       method: "initialize",
-      params: { clientInfo: { name: "opencode_codex_contingent", title: "OpenCode Codex Contingent", version: "0.1.0" } },
+      params: { clientInfo: { name: "codex_contingent", title: "Codex Contingent", version: metadata.version } },
     });
   });
 }

@@ -38,6 +38,10 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: npm run check
       - run: npm audit
+      - name: Package VS Code extension before publishing
+        run: npm run package:vscode
+      - name: Smoke-test both packaged adapters offline
+        run: npm run test:packages
       - name: Pack the checked build
         run: node scripts/release.mjs prepare "$RELEASE_TAG"
       - name: Publish publicly to npm using OIDC
@@ -54,7 +58,7 @@ jobs:
           if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
             echo "GitHub release already exists; leaving it unchanged."
           else
-            gh release create "$RELEASE_TAG" .release/*.tgz \
+            gh release create "$RELEASE_TAG" .release/*.tgz .release/*.vsix \
               --repo "$GITHUB_REPOSITORY" --verify-tag \
               --title "$RELEASE_TAG" --notes-file .release/notes.md
           fi

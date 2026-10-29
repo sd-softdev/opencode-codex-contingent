@@ -28,3 +28,7 @@ jobs:
         if: matrix.node == 26
       - run: npm pack --dry-run --ignore-scripts
         if: matrix.node == 26
+      - run: npm run package:vscode
+        if: matrix.node == 26
+      - run: npm run test:packages
+        if: matrix.node == 26

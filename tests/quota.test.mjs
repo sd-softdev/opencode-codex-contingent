@@ -3,7 +3,7 @@ import { EventEmitter } from "node:events";
 import { homedir } from "node:os";
 import { PassThrough } from "node:stream";
 import test from "node:test";
-import { normalizeLimits, readCodexLimits, resetText, QuotaError } from "../src/quota.mjs";
+import { normalizeLimits, readCodexLimits, resetText, QuotaError } from "../src/core/quota.mjs";
 
 const weekly = { usedPercent: 17, windowDurationMins: 10080, resetsAt: 2000000000 };
 const rolling = { usedPercent: 5, windowDurationMins: 300, resetsAt: 1900000000 };

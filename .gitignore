@@ -1,6 +1,8 @@
 node_modules/
 dist/
 .release/
+.vscode-build/
+*.vsix
 coverage/
 *.tgz
 .DS_Store
