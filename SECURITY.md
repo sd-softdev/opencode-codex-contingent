@@ -26,6 +26,6 @@ details are plain text, never trusted Markdown, HTML, or provider-supplied comma
 No telemetry or direct quota HTTP requests are made by either adapter. Each host
 keeps its own in-memory cache; they do not share a running process or credentials.
 
-The supported release line is 0.2.x for OpenCode 2.2.x and desktop VS Code 1.96+.
+The supported release line is 0.3.x for OpenCode 2.2.x and desktop VS Code 1.96+.
 Check source changes before updating a clone. This project does not guarantee upstream quota accuracy or
 availability.
